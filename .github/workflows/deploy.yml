@@ -26,11 +26,15 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          # 1. Write the GitHub secrets into actual .env files for the build process
+          # 1. Create empty dummy files for backends so Docker Compose doesn't crash
+          touch backend/.env
+          touch stem/stem_backend/.env
+          
+          # 2. Inject your real GitHub Secrets for the frontends
           echo "${{ secrets.FRONTEND_ENV }}" > frontend/.env
           echo "${{ secrets.STEM_FRONTEND_ENV }}" > stem/stem_frontend/.env
           
-          # 2. Now Docker will see the .env files when it builds the frontends!
+          # 3. Build and push!
           docker compose build
           docker compose push
 
