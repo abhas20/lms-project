@@ -1,35 +1,44 @@
-import Groq from "groq-sdk";
 import dotenv from "dotenv";
+import {
+  BedrockRuntimeClient,
+  ConverseCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 
 dotenv.config();
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+const client = new BedrockRuntimeClient({
+  region: process.env.AWS_REGION || "us-east-1",
 });
 
-
-export const askGroq = async (input) => {
-  const systemMessage = {
-    role: "system",
-    content:
-      "You are a friendly AI tutor helping elementary school students (ages 6-12) learn STEM subjects. Explain concepts in simple, engaging ways with examples. Be encouraging and patient. Use analogies and real-world examples that kids can relate to.",
-  };
-
-  const messages = Array.isArray(input)
-    ? [systemMessage, ...input]
-    : [systemMessage, { role: "user", content: input }];
+export const askBedrock = async (messages) => {
+  const systemMessage =
+    "You are a friendly AI tutor helping elementary school students.";
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages,
-      temperature: 0.3,
-      max_tokens: 500,
+    const conversation = messages.map((m) => ({
+      role: m.role,
+      content: [{ text: m.content }],
+    }));
+
+    const command = new ConverseCommand({
+      modelId: "meta.llama3-8b-instruct-v1:0",
+
+      system: [{ text: systemMessage }],
+
+      messages: conversation,
+
+      inferenceConfig: {
+        maxTokens: 500,
+        temperature: 0.3,
+        topP: 0.9,
+      },
     });
 
-    return completion.choices[0]?.message?.content || "";
+    const response = await client.send(command);
+
+    return response.output.message.content[0].text || "";
   } catch (error) {
-    console.error("Groq API Error:", error);
+    console.error("Bedrock API Error:", error);
     throw new Error("Failed to generate AI response");
   }
 };

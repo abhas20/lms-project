@@ -1,6 +1,6 @@
 import ChatMessage from "../models/ChatMessage.js";
 import { v4 as uuid } from "uuid";
-import { askGroq } from "../utils/groq.js";
+import { askBedrock } from "../utils/groq.js";
 
 export const chatWithTutor = async (req, res) => {
   try {
@@ -12,6 +12,30 @@ export const chatWithTutor = async (req, res) => {
         .json({ error: "session_id and message are required" });
     }
 
+    // 1️⃣ Fetch history FIRST
+    const history = await ChatMessage.find(
+      { session_id },
+      { _id: 0, role: 1, content: 1 },
+    )
+      .sort({ timestamp: 1 })
+      .limit(20);
+
+    // 2️⃣ Format history
+    const formattedHistory = history.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+
+    // 3️⃣ Append newest user message
+    formattedHistory.push({
+      role: "user",
+      content: message,
+    });
+
+    // 4️⃣ Ask Bedrock
+    const aiResponse = await askBedrock(formattedHistory);
+
+    // 5️⃣ Save user message
     await ChatMessage.create({
       id: uuid(),
       session_id,
@@ -20,16 +44,7 @@ export const chatWithTutor = async (req, res) => {
       timestamp: new Date(),
     });
 
-    const history = await ChatMessage.find(
-      { session_id },
-      { _id: 0, role: 1, content: 1 },
-    )
-      .sort({ timestamp: 1 })
-      .limit(10);
-
-    const aiResponse = await askGroq(history);
-    // console.log(aiResponse);
-
+    // 6️⃣ Save AI reply
     await ChatMessage.create({
       id: uuid(),
       session_id,
@@ -41,15 +56,14 @@ export const chatWithTutor = async (req, res) => {
     res.json({ response: aiResponse });
   } catch (error) {
     console.error("ChatWithTutor Error:", error);
+
     res.status(500).json({
       error: "AI Tutor is currently unavailable. Please try again later.",
     });
   }
 };
 
-/**
- * GET /api/chat/:session_id
- */
+
 export const getChatHistory = async (req, res) => {
   try {
     const { session_id } = req.params;
@@ -65,6 +79,9 @@ export const getChatHistory = async (req, res) => {
     res.json(messages);
   } catch (error) {
     console.error("GetChatHistory Error:", error);
-    res.status(500).json({ error: "Failed to fetch chat history" });
+
+    res.status(500).json({
+      error: "Failed to fetch chat history",
+    });
   }
 };
