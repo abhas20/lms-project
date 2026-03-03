@@ -1,18 +1,37 @@
-import Groq from "groq-sdk";
+import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+const client = new BedrockRuntimeClient({
+  region: "eu-north-1",
 });
 
-export const askGroq = async (prompt) => {
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant", // ✅ VALID MODEL
-    messages: [
-      { role: "system", content: "You are a helpful course tutor." },
-      { role: "user", content: prompt },
-    ],
+export const askBedrock = async (prompt) => {
+  console.log("hi am bedrock");
+
+  const body = JSON.stringify({
+    anthropic_version: "bedrock-2023-05-31",
+    max_tokens: 500,
     temperature: 0.3,
+    system: "You are a helpful course tutor.",
+    messages: [
+      {
+        role: "user",
+        content: prompt
+      }
+    ]
   });
 
-  return completion.choices[0].message.content;
+  const command = new InvokeModelCommand({
+    modelId: "anthropic.claude-3-haiku-20240307-v1:0",
+    contentType: "application/json",
+    accept: "application/json",
+    body
+  });
+
+  const response = await client.send(command);
+
+  const responseBody = JSON.parse(
+    new TextDecoder().decode(response.body)
+  );
+
+  return responseBody.content[0].text;
 };

@@ -2,11 +2,12 @@ import AIEmbedding from "../models/AIEmbedding.js";
 import AICourseChat from "../models/AICourseChat.js";
 import { embedText } from "../utils/embeddings.js";
 import { cosineSimilarity } from "../utils/similarity.js";
-import { askGroq } from "../utils/groq.js";
+import { askBedrock } from "../utils/groq.js";
 
 const SIMILARITY_THRESHOLD = 0.78;
 
 export const askCourseAI = async (req, res) => {
+  console.log("hi am bedrock");
   try {
     const { question, courseId } = req.body;
     const userId = req.userId;
@@ -72,7 +73,7 @@ ${question}
     }
 
     
-    const answer = await askGroq(prompt);
+    const answer = await askBedrock(prompt);
 
     
     const chat = await AICourseChat.findOneAndUpdate(
