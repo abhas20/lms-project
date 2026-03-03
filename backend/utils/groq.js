@@ -1,37 +1,43 @@
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+  ConverseCommand
+} from "@aws-sdk/client-bedrock-runtime";
 
 const client = new BedrockRuntimeClient({
-  region: "eu-north-1",
+  region: process.env.AWS_REGION || "us-east-1",
 });
 
 export const askBedrock = async (prompt) => {
-  console.log("hi am bedrock");
+  try {
+    const command = new ConverseCommand({
+      modelId: "meta.llama3-8b-instruct-v1:0",
 
-  const body = JSON.stringify({
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 500,
-    temperature: 0.3,
-    system: "You are a helpful course tutor.",
-    messages: [
-      {
-        role: "user",
-        content: prompt
-      }
-    ]
-  });
+      system: [
+        {
+          text: "You are a helpful course tutor.",
+        },
+      ],
 
-  const command = new InvokeModelCommand({
-    modelId: "anthropic.claude-3-haiku-20240307-v1:0",
-    contentType: "application/json",
-    accept: "application/json",
-    body
-  });
+      messages: [
+        {
+          role: "user",
+          content: [{ text: prompt }],
+        },
+      ],
 
-  const response = await client.send(command);
+      inferenceConfig: {
+        maxTokens: 700,
+        temperature: 0.3,
+        topP: 0.9,
+      },
+    });
 
-  const responseBody = JSON.parse(
-    new TextDecoder().decode(response.body)
-  );
+    const response = await client.send(command);
 
-  return responseBody.content[0].text;
+    return response.output.message.content[0].text || "";
+  } catch (error) {
+    console.error("Bedrock API Error:", error);
+    throw new Error("Failed to generate AI response");
+  }
 };
