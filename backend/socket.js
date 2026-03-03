@@ -13,13 +13,18 @@ export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
       origin: [
-        process.env.FRONTEND_URL , "http://localhost:5173",
-        "https://lms-by-tle-terminator.vercel.app"
+        process.env.FRONTEND_URL,
+        "http://localhost:5173",
+        "https://lms-by-tle-terminator.vercel.app",
+        "http://lmsbytle.codes",
+        "https://lmsbytle.codes",
+        "http://www.lmsbytle.codes",
+        "https://www.lmsbytle.codes",
       ],
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE"],
     },
-    transports: ["websocket", "polling"], 
+    transports: ["websocket", "polling"],
   });
 
   io.on("connection", (socket) => {

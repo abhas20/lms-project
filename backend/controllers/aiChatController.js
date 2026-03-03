@@ -7,23 +7,27 @@ import { askBedrock } from "../utils/groq.js";
 const SIMILARITY_THRESHOLD = 0.78;
 
 export const askCourseAI = async (req, res) => {
-  console.log("hi am bedrock");
   try {
     const { question, courseId } = req.body;
     const userId = req.userId;
 
     if (!userId) {
       return res.status(401).json({
-        messages: [{ role: "assistant", content: "Please login to use AI tutor." }],
+        messages: [
+          { role: "assistant", content: "Please login to use AI tutor." },
+        ],
       });
     }
 
     if (!question?.trim() || !courseId) {
       return res.status(400).json({
-        messages: [{ role: "assistant", content: "Invalid question or course." }],
+        messages: [
+          { role: "assistant", content: "Invalid question or course." },
+        ],
       });
     }
 
+    // Generate embedding for question
     const qEmbedding = await embedText(question);
 
     const docs = await AIEmbedding.find({ courseId });
@@ -32,7 +36,7 @@ export const askCourseAI = async (req, res) => {
 
     if (docs.length) {
       const ranked = docs
-        .map(d => ({
+        .map((d) => ({
           chunk: d.chunk,
           score: cosineSimilarity(qEmbedding, d.embedding),
         }))
@@ -43,13 +47,15 @@ export const askCourseAI = async (req, res) => {
 
       if (bestScore >= SIMILARITY_THRESHOLD) {
         const context = topMatches
-          .map(r => r.chunk)
+          .map((r) => r.chunk)
           .join("\n\n")
           .slice(0, 6000);
 
         prompt = `
 You are a course tutor.
-Answer ONLY using the notes below.
+
+Use ONLY the notes below to answer the question.
+If the answer is not in the notes, say you could not find it.
 
 NOTES:
 ${context}
@@ -60,22 +66,22 @@ ${question}
       }
     }
 
-  
+    // fallback if no relevant notes found
     if (!prompt) {
       prompt = `
 You are a knowledgeable teaching assistant.
-Answer the question clearly using general knowledge.
-Explain simply.
+
+Explain the answer clearly in simple terms.
 
 QUESTION:
 ${question}
 `;
     }
 
-    
+    // Ask Bedrock
     const answer = await askBedrock(prompt);
 
-    
+    // Save conversation
     const chat = await AICourseChat.findOneAndUpdate(
       { courseId, userId },
       {
@@ -86,15 +92,17 @@ ${question}
           ],
         },
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     return res.json({ messages: chat.messages });
-
   } catch (err) {
     console.error("AI ERROR:", err);
+
     return res.status(500).json({
-      messages: [{ role: "assistant", content: "AI is currently unavailable." }],
+      messages: [
+        { role: "assistant", content: "AI is currently unavailable." },
+      ],
     });
   }
 };

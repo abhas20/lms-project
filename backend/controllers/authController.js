@@ -72,19 +72,32 @@ export const login=async(req,res)=>{
     }
 }
 
-export const logOut = async(req,res)=>{
-    try {
-        // 👇 UPDATED: Must provide the same options to successfully clear cross-origin cookies
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none"
-        });
-        return res.status(200).json({message:"logOut Successfully"})
-    } catch (error) {
-        return res.status(500).json({message:`logout Error ${error}`})
+
+
+export const logOut = async (req, res) => {
+  try {
+
+    // reset usage session
+    if (req.user?.id) {
+      await User.findByIdAndUpdate(req.user.id, {
+        continuousUsageMinutes: 0,
+        currentSessionStart: null,
+      });
     }
-}
+
+    // clear auth cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(200).json({ message: "logOut Successfully" });
+
+  } catch (error) {
+    return res.status(500).json({ message: `logout Error ${error}` });
+  }
+};
 
 export const googleSignup = async (req,res) => {
     try {
