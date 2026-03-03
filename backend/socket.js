@@ -222,11 +222,14 @@ export const initSocket = (server) => {
     // 5. TEACHER ENDS QUESTION
     socket.on("host_show_results", async ({ roomCode }) => {
       const room = liveQuizzes.get(roomCode);
-      if (!room) return;
+      if (!room || !room.currentQuestion) return; // Added safety check
 
       const stats = [0, 0, 0, 0];
       const leaderboard = [];
       const participantsData = [];
+
+      // 🔥 FIX: Extract the correctIndex BEFORE we clear the currentQuestion!
+      const finalCorrectIndex = room.currentQuestion.correctIndex; 
 
       Object.entries(room.players).forEach(([socketId, p]) => {
         if (p.currentAnswer !== undefined && p.currentAnswer !== null) {
@@ -269,10 +272,12 @@ export const initSocket = (server) => {
         console.error("Failed to save quiz result:", error);
       }
 
+      // We clear the room state so users can't submit late answers
       room.currentQuestion = null;
 
+      // 🔥 FIX: We now use finalCorrectIndex instead of room.currentQuestion.correctIndex
       io.to(roomCode).emit("question_results", {
-        correctIndex: room.currentQuestion?.correctIndex || 0,
+        correctIndex: finalCorrectIndex, 
         stats,
         leaderboard: top5
       });
