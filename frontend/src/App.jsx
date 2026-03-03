@@ -33,7 +33,8 @@ import StudentArena from './pages/live-quiz/StudentArena'
 import LiveClassDashboard from './pages/LiveClassDashboard'
 import LiveRoom from './pages/LiveRoom'
 import AIScheduler from './pages/AIScheduler'
-
+import StressAnalysis from './pages/StressAnalysis'
+import useUsageTracker from "./hooks/useUsageTracker";
 export const serverUrl = import.meta.env.VITE_BACKEND || "http://localhost:8000"
 
 // 👇 THE MAGIC FIX: GLOBAL AXIOS CONFIGURATION 👇
@@ -43,7 +44,7 @@ axios.defaults.withCredentials = true;
 function App() {
 
   const { userData, isAuthChecked } = useSelector(state => state.user)
-
+  useUsageTracker();
   // custom hooks must be called at top level
   getCurrentUser()
   getCouseData()
@@ -214,6 +215,14 @@ function App() {
           element={
             userData
               ? <AIScheduler />
+              : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/stress-analysis"
+          element={
+            userData
+              ? <StressAnalysis />
               : <Navigate to="/login" />
           }
         />

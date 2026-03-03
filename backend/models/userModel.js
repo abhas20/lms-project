@@ -53,7 +53,26 @@ const userSchema = new mongoose.Schema(
       personalWebsite: { type: String, default: null },
     },
     
-    
+    // Usage / Stress Tracking Fields
+currentSessionStart: {
+  type: Date,
+  default: null,
+},
+dailyUsage: [
+  {
+    date: {
+      type: String, 
+    },
+    minutesSpent: {
+      type: Number,
+      default: 0,
+    },
+  },
+],
+continuousUsageMinutes: {
+  type: Number,
+  default: 0,
+},
     // Gamification Fields
     xp: { type: Number, default: 0 },
     rank: { type: String, default: "Novice" },

@@ -18,9 +18,11 @@ import http from "http";
 import { initSocket } from "./socket.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import aiChatRoute from "./routes/aiChatRoute.js";
-
+import usageRoutes from "./routes/usageRoutes.js";
 import liveRouter from "./routes/liveRoutes.js"; 
 import summaryRouter from "./routes/summaryRoute.js"
+import stressRoutes from "./routes/stressRoutes.js";
+
 
 dotenv.config()
 
@@ -68,7 +70,9 @@ app.use("/api/chatai", aiChatRoute);
 app.use("/api/ai-scheduler", aiSchedulerRoute);
 app.use("/api/summary", summaryRouter);
 app.use("/api/live", liveRouter);
+app.use("/api/usage", usageRoutes);
 
+app.use("/api/stress", stressRoutes);
 app.get("/" , (req,res)=>{
     res.send("Hello From Server")
 })
