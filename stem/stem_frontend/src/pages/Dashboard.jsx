@@ -1,3 +1,5 @@
+
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -9,10 +11,11 @@ import {
   TrendingUp,
   ArrowRight,
   ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@radix-ui/themes";
 import Loader from "../components/Loader";
-import {motion} from 'framer-motion'
+import { motion } from "framer-motion";
 import AdventureSection from "../components/AdventureSection";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -22,32 +25,8 @@ const API = `${BACKEND_URL}/api`;
 
 export default function Dashboard() {
   const navigate = useNavigate();
-
   const [mode, setMode] = useState("quiz");
-  // const [isLoading, setIsLoading] = useState(true);
 
-  // useEffect(() => {
-  //   initializeData();
-  // }, []);
-
-  // const initializeData = async () => {
-  //   try {
-  //     await axios.post(`${API}/init-data`);
-  //     setIsLoading(false);
-  //   } catch (error) {
-  //     console.error("Error initializing data:", error);
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <Loader/>
-  //     </div>
-  //   );
-  // }
-  
   const adventures = [
     {
       id: "quiz",
@@ -59,7 +38,7 @@ export default function Dashboard() {
           title: "Math Explorer",
           description: "Solve puzzles, logic & challenges.",
           icon: Calculator,
-          color: "from-indigo-500 to-blue-600",
+          color: "from-blue-500 to-cyan-400",
           bgImage:
             "https://images.unsplash.com/photo-1735116356965-ad5b323d1af8",
           path: "/quiz/math",
@@ -69,7 +48,7 @@ export default function Dashboard() {
           title: "Science Quiz",
           description: "Explore biology, physics & chemistry.",
           icon: Atom,
-          color: "from-green-500 to-emerald-600",
+          color: "from-yellow-400 to-orange-500",
           bgImage:
             "https://images.unsplash.com/photo-1532094349884-543bc11b234d",
           path: "/quiz/science",
@@ -79,7 +58,7 @@ export default function Dashboard() {
           title: "Computer Quiz",
           description: "Test your CS & programming skills.",
           icon: Sparkles,
-          color: "from-fuchsia-500 to-pink-600",
+          color: "from-purple-500 to-indigo-500",
           bgImage:
             "https://images.unsplash.com/photo-1518770660439-4636190af475",
           path: "/quiz/computer",
@@ -97,7 +76,7 @@ export default function Dashboard() {
           title: "Physics Lab",
           description: "Motion, forces & simulations.",
           icon: Atom,
-          color: "from-orange-500 to-amber-600",
+          color: "from-orange-400 to-amber-500",
           bgImage:
             "https://images.unsplash.com/photo-1675627453075-0f170b02186a",
           path: "/experiment/physics",
@@ -107,7 +86,7 @@ export default function Dashboard() {
           title: "Chemistry Lab",
           description: "React, mix & discover.",
           icon: FlaskConical,
-          color: "from-lime-500 to-emerald-600",
+          color: "from-emerald-400 to-teal-500",
           bgImage:
             "https://images.unsplash.com/photo-1633412748213-0cf8268c357f",
           path: "/experiment/chemistry",
@@ -117,16 +96,16 @@ export default function Dashboard() {
           title: "Computer Lab",
           description: "Simulate algorithms & systems.",
           icon: TrendingUp,
-          color: "from-cyan-500 to-blue-600",
+          color: "from-cyan-500 to-blue-500",
           bgImage: "https://images.unsplash.com/photo-1555949963-aa79dcee981c",
           path: "/experiment/computer",
         },
         {
           id: "math",
           title: "Math Lab",
-          description: "Visualise in real lifr.",
+          description: "Visualise in real life.",
           icon: TrendingUp,
-          color: "from-cyan-500 to-blue-600",
+          color: "from-blue-500 to-indigo-500",
           bgImage: "https://images.unsplash.com/photo-1555949963-aa79dcee981c",
           path: "/experiment/math",
         },
@@ -134,52 +113,68 @@ export default function Dashboard() {
     },
   ];
 
-
-
   return (
     <div
-      className="min-h-screen  bg-[#0b1220] text-slate-100 pb-20"
-      data-testid="dashboard-page">
-      {/* Back Button */}
-      <div className="container mx-auto px-6 md:px-12 pt-6 c">
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 mb-4 hover:bg-slate-100 text-white hover:text-slate-900 rounded-xl px-4 py-2 font-bold"
-          onClick={() => (window.location.href = mainUrl)}>
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+      className="min-h-screen bg-[#0B1120] text-slate-100 pb-10 font-sans relative"
+      data-testid="dashboard-page"
+    >
+      {/* --- Ambient Background Glows --- */}
+      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-yellow-500/5 blur-[150px] rounded-full pointer-events-none" />
+
+      {/* ================= HEADER / TOP BAR ================= */}
+      <div className="fixed top-0 left-0 w-full z-50 bg-[#0B1120]/70 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
+        <div className="container mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2 text-slate-400 hover:text-white hover:bg-white/5 transition-all rounded-xl px-4 py-2 font-bold cursor-pointer group"
+            onClick={() => (window.location.href = mainUrl)}
+          >
+            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+            <span>Dashboard</span>
+          </Button>
+
+          {/* Optional: Add a sleek right-side element like a user profile or 'Pro' badge if needed */}
+        </div>
       </div>
 
-      {/* ================= HERO ================= */}
-      <section className="relative h-[80vh] min-h-[600px] flex items-center overflow-hidden">
-        {/* Background Image */}
+      {/* ================= HERO SECTION ================= */}
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20 border-b border-white/5">
+        {/* Background Image Setup */}
         <div className="absolute inset-0 z-0">
-          <img
+          <motion.img
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
             src="https://images.unsplash.com/photo-1633412748213-0cf8268c357f"
             alt="STEM Background"
             className="w-full h-full object-cover"
           />
-
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-blue-900/40" />
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
+          {/* Deep Navy Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0B1120] via-[#0B1120]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-transparent to-[#0B1120]/50" />
         </div>
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 text-center">
-          <motion.span
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center text-center md:items-start md:text-left mt-[-5%]">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-4 py-1 mb-6 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-black uppercase tracking-widest backdrop-blur-md">
-            Interactive STEM Platform
-          </motion.span>
+            transition={{ duration: 0.5 }}
+            className="mb-6"
+          >
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#151B2B]/80 backdrop-blur-md border border-white/10 text-cyan-400 text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+              <Sparkles className="w-3.5 h-3.5" /> Interactive STEM Platform
+            </span>
+          </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-black text-white leading-tight mb-6">
-            Explore. Experiment.{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500">
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-[6rem] font-black text-white leading-[1.05] tracking-tight mb-6"
+          >
+            Explore. Experiment. <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-600 drop-shadow-[0_0_30px_rgba(250,204,21,0.3)]">
               Dominate.
             </span>
           </motion.h1>
@@ -187,60 +182,92 @@ export default function Dashboard() {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10">
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto md:mx-0 mb-12 leading-relaxed font-medium"
+          >
             Learn Math, Physics, and Chemistry through challenges, experiments,
-            and AI-powered guidance.
+            and AI-powered guidance designed for modern achievers.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center">
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto justify-center md:justify-start"
+          >
+            {/* Ask AI Tutor Button - White & Prominent */}
             <button
               onClick={() => navigate("/tutor")}
-              className="px-8 py-4 rounded-2xl bg-white text-slate-900 font-bold text-lg hover:bg-blue-50 transition-all shadow-xl shadow-white/10">
-              Ask AI Tutor
+              className="group relative px-8 py-4 rounded-[1.25rem] bg-white text-[#0B1120] font-bold text-base tracking-wide shadow-[0_10px_40px_rgba(255,255,255,0.15)] hover:shadow-[0_15px_50px_rgba(255,255,255,0.25)] transition-all duration-300 overflow-hidden"
+            >
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              <span className="relative flex justify-center items-center gap-2">
+                Ask AI Tutor{" "}
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
             </button>
 
+            {/* Start Learning Button - Glassmorphism */}
             <button
               onClick={() => navigate("/quiz/math")}
-              className="px-8 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg hover:bg-white/20 transition-all">
+              className="px-8 py-4 rounded-[1.25rem] bg-[#151B2B]/60 backdrop-blur-xl border border-white/10 text-white font-bold text-base tracking-wide hover:bg-white/10 hover:border-white/20 transition-all duration-300 flex justify-center items-center shadow-lg"
+            >
               Start Learning
             </button>
+
+            {/* Explore 3D Models - Vibrant Blue */}
             <button
-              onClick={() => {window.location.href="https://ai-3d-playground.vercel.app/"}}
-              className="px-8 py-4 rounded-2xl bg-blue-600 border border-white/20 text-white font-bold text-lg hover:bg-white/20 transition-all">
+              onClick={() => {
+                window.location.href = "https://ai-3d-playground.vercel.app/";
+              }}
+              className="px-8 py-4 rounded-[1.25rem] bg-gradient-to-r from-blue-600 to-[#2563EB] hover:from-blue-500 hover:to-[#1D4ED8] text-white font-bold text-base tracking-wide shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex justify-center items-center"
+            >
               Explore 3D models
             </button>
           </motion.div>
         </div>
       </section>
 
-      <AdventureSection adventures={adventures} />
+      {/* ================= ADVENTURE SECTION ================= */}
+      <div className="relative z-10 -mt-10">
+        <AdventureSection adventures={adventures} />
+      </div>
 
-      {/* Quick Stats */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto bg-slate-200 rounded-[2.5rem] shadow-xl border border-slate-100 p-10">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            {[
-              { value: "100+", label: "Math Challenges" },
-              { value: "20+", label: "Experiments" },
-              { value: "24/7", label: "AI Tutor" },
-            ].map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.2 }}>
-                <div className="text-4xl font-black text-indigo-600">
-                  {stat.value}
+      {/* ================= PREMIUM STATS SECTION ================= */}
+      <section className="py-16 md:py-24 relative z-10 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="bg-[#151B2B]/80 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/5 p-10 md:p-14 overflow-hidden relative group"
+          >
+            {/* Subtle top glare */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+            {/* Inner background glow on hover */}
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+            <div className="grid md:grid-cols-3 gap-10 md:gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-white/5 relative z-10">
+              {[
+                { value: "100+", label: "Math Challenges" },
+                { value: "20+", label: "Experiments" },
+                { value: "24/7", label: "AI Tutor Support" },
+              ].map((stat, i) => (
+                <div
+                  key={i}
+                  className="pt-8 md:pt-0 first:pt-0 flex flex-col items-center justify-center group/stat cursor-default"
+                >
+                  <div className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 group-hover/stat:from-yellow-400 group-hover/stat:to-yellow-600 drop-shadow-lg mb-3 transition-all duration-500 transform group-hover/stat:scale-105">
+                    {stat.value}
+                  </div>
+                  <div className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs md:text-sm group-hover/stat:text-slate-300 transition-colors duration-300">
+                    {stat.label}
+                  </div>
                 </div>
-                <div className="text-slate-500 font-medium">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>
