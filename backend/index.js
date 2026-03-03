@@ -24,6 +24,13 @@ import summaryRouter from "./routes/summaryRoute.js"
 import stressRoutes from "./routes/stressRoutes.js";
 
 
+// ─── STEM Routes ───
+import stemQuizRouter from "./routes/stemQuizRoute.js";
+import stemExperimentRouter from "./routes/stemExperimentRoute.js";
+import stemChatRouter from "./routes/stemChatRoute.js";
+import stemProgressRouter from "./routes/stemProgressRoute.js";
+import stemInitRouter from "./routes/stemInitRoute.js";
+
 dotenv.config()
 
 let port = process.env.PORT || 8000
@@ -31,11 +38,14 @@ let port = process.env.PORT || 8000
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
+  "http://localhost:3000",
   "https://lms-by-tle-terminator.vercel.app",
   "http://lmsbytle.codes",
   "https://lmsbytle.codes",
   "http://www.lmsbytle.codes",
   "https://www.lmsbytle.codes",
+  "http://stem.lmsbytle.codes",
+  "https://stem.lmsbytle.codes",
 ];
 
 let app = express()
@@ -71,6 +81,14 @@ app.use("/api/ai-scheduler", aiSchedulerRoute);
 app.use("/api/summary", summaryRouter);
 app.use("/api/live", liveRouter);
 app.use("/api/usage", usageRoutes);
+
+// ─── STEM Routes ───
+app.use("/api/stem/quiz", stemQuizRouter);
+app.use("/api/stem/experiments", stemExperimentRouter);
+app.use("/api/stem/chat", stemChatRouter);
+app.use("/api/stem/progress", stemProgressRouter);
+app.use("/api/stem", stemInitRouter);
+
 
 app.use("/api/stress", stressRoutes);
 app.get("/" , (req,res)=>{
