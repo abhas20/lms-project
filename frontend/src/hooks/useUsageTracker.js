@@ -8,26 +8,39 @@ export default function useUsageTracker() {
   const isTabActive = useRef(true);
   const isIdle = useRef(false);
   const idleTimer = useRef(null);
+  const lastAlertTime = useRef(0);
+
+  const TAB_KEY = "active_usage_tab";
 
   useEffect(() => {
 
-    //console.log("🧠 Usage tracker started");
+    // ----- TAB LEADER CHECK -----
+    const isLeader = () => {
+      const current = localStorage.getItem(TAB_KEY);
+
+      if (!current) {
+        localStorage.setItem(TAB_KEY, Date.now().toString());
+        return true;
+      }
+
+      return current === tabId;
+    };
+
+    const tabId = Date.now().toString();
+    localStorage.setItem(TAB_KEY, tabId);
 
     const sendUsage = async () => {
 
+      if (!isLeader()) return;
+
       const now = Date.now();
       const diff = now - sessionStart.current;
-      
-      const minutes = Math.max(1, Math.floor(diff / 60000));
 
-      if (minutes <= 0) {
-        console.log("⏱ Not enough time yet:", diff);
-        return;
-      }
+      const minutes = Math.floor(diff / 60000);
+
+      if (minutes < 1) return;
 
       try {
-
-        //console.log("📡 Sending usage:", minutes);
 
         const res = await axios.post(
           `${serverUrl}/api/usage/update`,
@@ -35,32 +48,34 @@ export default function useUsageTracker() {
           { withCredentials: true }
         );
 
-        //console.log("✅ usage saved", res.data);
+        const usage = res.data.continuousUsageMinutes;
 
-        if (res.data.continuousUsageMinutes > 120) {
-          alert("You have been studying for 2 hours. Take a short break!");
+        // ---- ALERT COOLDOWN (10 MIN) ----
+        if (usage > 120) {
+          const nowTime = Date.now();
+
+          if (nowTime - lastAlertTime.current > 10 * 60 * 1000) {
+            alert("You have been studying for 2 hours. Take a short break!");
+            lastAlertTime.current = nowTime;
+          }
         }
 
         sessionStart.current = Date.now();
 
       } catch (err) {
-        console.error("❌ usage tracking failed", err);
+        console.error("usage tracking failed", err);
       }
     };
 
-    // TAB VISIBILITY
+    // ----- TAB VISIBILITY -----
     const handleVisibility = () => {
 
       if (document.hidden) {
-
-        //console.log("🚫 Tab hidden → saving usage");
 
         sendUsage();
         isTabActive.current = false;
 
       } else {
-
-        //console.log("👀 Tab active");
 
         sessionStart.current = Date.now();
         isTabActive.current = true;
@@ -71,11 +86,10 @@ export default function useUsageTracker() {
 
     document.addEventListener("visibilitychange", handleVisibility);
 
-    // IDLE DETECTION
+    // ----- IDLE DETECTION -----
     const resetIdleTimer = () => {
 
       if (isIdle.current) {
-        //console.log("🟢 User active again");
         sessionStart.current = Date.now();
       }
 
@@ -84,8 +98,6 @@ export default function useUsageTracker() {
       clearTimeout(idleTimer.current);
 
       idleTimer.current = setTimeout(() => {
-
-        //console.log("💤 User idle → saving usage");
 
         isIdle.current = true;
         sendUsage();
@@ -100,9 +112,10 @@ export default function useUsageTracker() {
 
     resetIdleTimer();
 
-    // PERIODIC SAVE (every 5 min)
+    // ----- PERIODIC SAVE (5 MIN) -----
     const interval = setInterval(() => {
 
+      if (!isLeader()) return;
       if (!isTabActive.current) return;
       if (isIdle.current) return;
 
@@ -115,6 +128,7 @@ export default function useUsageTracker() {
       sendUsage();
 
       clearInterval(interval);
+
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("mousemove", resetIdleTimer);
       window.removeEventListener("keydown", resetIdleTimer);
