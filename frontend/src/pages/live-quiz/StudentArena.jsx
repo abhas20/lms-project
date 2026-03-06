@@ -1,82 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { io } from 'socket.io-client';
-import { serverUrl } from '../../App';
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { io } from "socket.io-client";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Trophy,
+  Zap,
+  Clock,
+  AlertCircle,
+  Activity,
+  ChevronRight,
+  CheckCircle2,
+  Flame,
+  Unplug,
+  Rocket,
+  ShieldAlert,
+} from "lucide-react";
+import { serverUrl } from "../../App";
 
 let socket;
 
 const StudentArena = () => {
   const { userData } = useSelector((state) => state.user);
   const [joined, setJoined] = useState(false);
-  
-  const [inputCode, setInputCode] = useState(sessionStorage.getItem('studentRoomCode') || '');
-  
-  const [connectionStatus, setConnectionStatus] = useState('Connecting...');
+  const [inputCode, setInputCode] = useState(
+    sessionStorage.getItem("studentRoomCode") || "",
+  );
+  const [connectionStatus, setConnectionStatus] = useState("Connecting...");
   const [activeQ, setActiveQ] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const [resultData, setResultData] = useState(null);
-  const [joinError, setJoinError] = useState('');
-  
-  // 🔥 NEW: Persistent Leaderboard State
+  const [joinError, setJoinError] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
 
-  // Bar colors for the graph
-  const barColors = ['bg-rose-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'];
+  // 🔥 Animation control states
+  const [showLaunchVibration, setShowLaunchVibration] = useState(false);
+  const [showEruptionparticles, setShowEruptionParticles] = useState(false);
+
+  const barColors = [
+    "bg-rose-500",
+    "bg-emerald-500",
+    "bg-blue-500",
+    "bg-amber-500",
+  ];
 
   useEffect(() => {
     socket = io(serverUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ["websocket", "polling"],
       withCredentials: true,
     });
+    socket.on("connect", () => setConnectionStatus("Connected 🟢"));
+    socket.on("connect_error", (err) => setConnectionStatus(`Disconnected 🔴`));
 
-    socket.on('connect', () => {
-      setConnectionStatus('Connected 🟢');
-    });
-
-    socket.on('connect_error', (err) => {
-      setConnectionStatus(`Disconnected 🔴 (${err.message})`);
-    });
-
-    socket.on('join_success', (data) => {
-      sessionStorage.setItem('studentRoomCode', data.roomCode); 
+    socket.on("join_success", (data) => {
+      sessionStorage.setItem("studentRoomCode", data.roomCode);
       setJoined(true);
-      setJoinError('');
+      setJoinError("");
     });
 
-    socket.on('error_msg', (data) => {
-      setJoinError(data.message);
+    socket.on("error_msg", (data) => setJoinError(data.message));
+    socket.on("room_closed", () => {
+      sessionStorage.removeItem("studentRoomCode");
+      window.location.reload();
     });
 
-    socket.on('room_closed', () => {
-      sessionStorage.removeItem('studentRoomCode');
-      alert("⚠️ The host has ended this session and reset the room. You will be disconnected.");
-      window.location.reload(); 
-    });
-
-    socket.on('restore_active_question', (data) => {
-      setActiveQ(data);
-      if (data.hasAnswered) {
-        setSubmitted(true);
-        setSelectedOption(data.answerIndex);
-      } else {
-        setSubmitted(false);
-        setSelectedOption(null);
-      }
-      setResultData(null); 
-    });
-
-    socket.on('receive_question', (data) => {
+    socket.on("receive_question", (data) => {
       setActiveQ(data);
       setSubmitted(false);
       setSelectedOption(null);
       setResultData(null);
+      setShowEruptionParticles(false);
     });
 
-    socket.on('question_results', (data) => {
+    socket.on("question_results", (data) => {
       setResultData(data);
-      setLeaderboard(data.leaderboard); // Update the persistent leaderboard
-      // Note: We DO NOT set activeQ to null here anymore, so the graph can read the option texts!
+      setLeaderboard(data.leaderboard);
+      setTimeout(() => setShowEruptionParticles(true), 150);
     });
 
     return () => {
@@ -85,254 +84,345 @@ const StudentArena = () => {
   }, []);
 
   const joinRoom = () => {
-    if (!inputCode.trim()) return alert('Please enter a room code.');
-    const cleanCode = inputCode.trim();
-
-    if (!socket || !socket.connected) {
-      alert(`Server not connected. Status: ${connectionStatus}`);
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setJoinError('Server did not respond. Please try again.');
-    }, 5000);
-
+    if (!inputCode.trim()) return;
     socket.emit(
-      'student_join_quiz',
+      "student_join_quiz",
       {
-        roomCode: cleanCode,
-        name: userData?.name || 'Guest',
+        roomCode: inputCode.trim(),
+        name: userData?.name || "Guest",
         userId: userData?._id || null,
       },
-      (response) => {
-        clearTimeout(timeoutId);
-        if (response && response.status === 'error') {
-          setJoinError(response.message);
-        } else if (response && response.status === 'success') {
-          setJoined(true);
-          setJoinError('');
-        } else {
-          setJoinError('No response from server. Check your connection.');
-        }
-      }
+      (res) => {
+        if (res?.status === "error") setJoinError(res.message);
+      },
     );
   };
 
   const submitAnswer = (index) => {
     if (submitted) return;
-    
-    socket.emit('student_submit_answer', { 
-        roomCode: inputCode.trim(), 
-        answerIndex: index,
-        userId: userData?._id || null,
-        name: userData?.name || 'Guest'
+    setShowLaunchVibration(true); // 🔥 Engagement Vibration
+    socket.emit("student_submit_answer", {
+      roomCode: inputCode.trim(),
+      answerIndex: index,
+      userId: userData?._id || null,
+      name: userData?.name || "Guest",
     });
-    
     setSelectedOption(index);
     setSubmitted(true);
+    setTimeout(() => setShowLaunchVibration(false), 600);
   };
 
   if (!joined) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-        <div className="absolute top-8 bg-slate-800 px-4 py-2 rounded-full text-xs font-mono text-slate-300">
-          Server: {serverUrl} | Status:{' '}
-          <span className={connectionStatus.includes('🟢') ? 'text-green-400' : 'text-rose-400'}>
-            {connectionStatus}
-          </span>
-        </div>
-        <div className="bg-slate-800 p-8 rounded-3xl text-center w-full max-w-md border border-slate-700 shadow-2xl mt-12">
-          <h1 className="text-3xl text-white font-black mb-2">Join Battle</h1>
-          <p className="text-slate-400 mb-6">Enter the code on the screen</p>
-          <input
-            className="w-full p-4 rounded-xl bg-slate-900 text-white mb-6 text-center text-3xl font-mono tracking-[0.5em] border border-slate-600 focus:border-green-500 focus:outline-none uppercase"
-            placeholder="1234"
-            maxLength={4}
-            value={inputCode}
-            onChange={(e) => setInputCode(e.target.value)}
+      <div className="min-h-screen bg-[#060A13] flex flex-col items-center justify-center p-6 relative overflow-hidden thermal-hull">
+        <style>{`
+          .thermal-hull { animation: thermal-pulse 5s infinite alternate ease-in-out; }
+          @keyframes thermal-pulse {
+            0% { box-shadow: inset 0 0 50px rgba(245, 158, 11, 0.05); }
+            100% { box-shadow: inset 0 0 150px rgba(220, 38, 38, 0.2); }
+          }
+          .lava-border { background: linear-gradient(90deg, #be123c, #fbbf24, #be123c); background-size: 200% 200%; animation: lava-slide 3s infinite linear; }
+          @keyframes lava-slide { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        `}</style>
+
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="absolute top-8 px-5 py-2 bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-mono text-slate-400 tracking-[0.2em] uppercase flex items-center gap-3"
+        >
+          <div
+            className={`w-2 h-2 rounded-full ${connectionStatus.includes("🟢") ? "bg-emerald-500 animate-pulse" : "bg-rose-600"}`}
           />
-          {joinError && (
-            <div className="mb-4 text-rose-400 text-sm bg-rose-900/20 p-2 rounded-lg border border-rose-800">
-              ⚠️ {joinError}
-            </div>
-          )}
-          <button
+          Status: {connectionStatus}
+        </motion.div>
+
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-[#0A111F] p-12 rounded-[3.5rem] text-center w-full max-w-md border border-white/5 shadow-2xl relative overflow-hidden z-10"
+        >
+          <div className="absolute top-0 left-0 w-full h-1.5 lava-border" />
+          <h1 className="text-5xl text-white font-black mb-2 italic uppercase tracking-tighter flex items-center justify-center gap-4">
+            ENTER ARENA{" "}
+            <Flame className="text-amber-500 animate-pulse" size={32} />
+          </h1>
+          <p className="text-slate-500 text-[9px] font-black mb-10 uppercase tracking-[0.4em]">
+            Sub-Surface Authorization Needed
+          </p>
+
+          <div className="relative group mb-8">
+            <input
+              className="w-full p-6 rounded-3xl bg-black/40 text-amber-400 text-center text-5xl font-mono tracking-[0.5em] border-2 border-white/5 focus:border-amber-500/60 focus:bg-black/60 transition-all focus:outline-none uppercase shadow-inner"
+              placeholder="0000"
+              maxLength={4}
+              value={inputCode}
+              onChange={(e) => setInputCode(e.target.value)}
+            />
+          </div>
+
+          <AnimatePresence>
+            {joinError && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mb-6 text-rose-400 text-[10px] font-bold bg-rose-500/10 p-4 rounded-2xl border border-rose-500/20 flex items-center justify-center gap-2 uppercase tracking-widest"
+              >
+                <AlertCircle size={14} /> {joinError}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={joinRoom}
-            className="w-full py-4 rounded-xl text-white font-bold text-lg bg-green-600 hover:bg-green-500 hover:scale-[1.02] shadow-lg shadow-green-600/30"
+            className="w-full py-6 rounded-[2.2rem] text-[#0A1120] font-black text-xl bg-amber-400 hover:bg-amber-300 transition-all shadow-[0_15px_40px_rgba(245,158,11,0.2)] uppercase tracking-[0.1em] flex items-center justify-center gap-3"
           >
-            Enter Room
-          </button>
-        </div>
+            INITIALIZE SYNC <ChevronRight size={26} />
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6 flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col items-center">
-          
-        {/* === WAITING SCREEN === */}
-        {!activeQ && !resultData ? (
-          <div className="text-center mt-32">
-            <div className="w-16 h-16 border-4 border-slate-700 border-t-green-500 rounded-full animate-spin mx-auto mb-6"></div>
-            <h2 className="text-2xl font-bold text-white mb-2">You are in!</h2>
-            <p className="text-slate-400">Waiting for the host to launch the next question...</p>
-          </div>
-        ) 
-        
-        /* === ACTIVE QUESTION SCREEN === */
-        : activeQ && !resultData ? (
-          <div className="w-full max-w-2xl mt-12">
-            <div className="mb-10 text-center">
-              <h2 className="text-3xl font-bold mb-4 text-slate-100">{activeQ.question}</h2>
-              <div className="inline-block px-4 py-2 bg-slate-800 rounded-full text-amber-400 font-bold text-sm border border-slate-700">
-                ⏳ Quick, choose an option!
+    <div className="min-h-screen bg-[#060A13] text-slate-200 p-6 flex flex-col items-center overflow-x-hidden relative selection:bg-rose-500/30 thermal-hull">
+      <style>{`
+        .heat-haze { backdrop-filter: blur(1px); animation: ripple 1.5s infinite linear; pointer-events: none; }
+        @keyframes ripple { 0% { transform: skewX(0deg) scale(1); } 50% { transform: skewX(0.4deg) scale(1.005); } 100% { transform: skewX(0deg) scale(1); } }
+        .vibration-active { animation: shake 0.1s infinite; }
+        @keyframes shake { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-3px, 3px); } 50% { transform: translate(3px, -3px); } }
+        .particle { position: absolute; bottom: 0; width: 8px; height: 8px; border-radius: 50%; animation: float-up 1.2s ease-out forwards; }
+        @keyframes float-up { 0% { transform: translateY(0) scale(1.5); opacity: 1; filter: blur(0px); } 100% { transform: translateY(-450px) scale(0); opacity: 0; filter: blur(4px); } }
+      `}</style>
+
+      <div className="absolute inset-0 heat-haze opacity-30 z-0" />
+
+      <div
+        className={`flex-1 w-full flex flex-col items-center max-w-4xl relative z-10 ${showLaunchVibration ? "vibration-active" : ""}`}
+      >
+        {/* --- IDLE STATE --- */}
+        {!activeQ && !resultData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center mt-32"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+              className="w-32 h-32 border-4 border-dashed border-amber-500/20 rounded-full mx-auto mb-10 flex items-center justify-center"
+            >
+              <Activity className="text-amber-500/40 animate-pulse" size={48} />
+            </motion.div>
+            <h2 className="text-5xl font-black text-white italic uppercase tracking-tighter">
+              Awaiting Uplink
+            </h2>
+            <p className="text-slate-500 text-xs font-bold tracking-[0.5em] uppercase mt-4">
+              Mission parameters pending...
+            </p>
+          </motion.div>
+        )}
+
+        {/* --- QUESTION VIEW --- */}
+        {activeQ && !resultData && (
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="w-full mt-10"
+          >
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-3 px-6 py-2 bg-rose-500/10 border border-rose-500/30 text-rose-500 rounded-full font-black text-[10px] tracking-widest uppercase mb-8 shadow-lg">
+                <ShieldAlert size={14} className="animate-pulse" />{" "}
+                URGENT_RESPONSE_REQUIRED
               </div>
+              <h2 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tighter uppercase italic">
+                {activeQ.question}
+              </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {activeQ.options.map((opt, i) => (
-                <button
+                <motion.button
                   key={i}
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => submitAnswer(i)}
                   disabled={submitted}
-                  className={`p-6 rounded-2xl text-xl font-bold transition-all transform 
-                    ${submitted && selectedOption === i ? 'bg-slate-700 border-4 border-slate-400 opacity-100 scale-95' : ''}
-                    ${submitted && selectedOption !== i ? 'bg-slate-800 opacity-40 cursor-not-allowed' : ''}
-                    ${!submitted
-                      ? i === 0
-                        ? 'bg-rose-500 shadow-[0_8px_0_rgb(159,18,57)] hover:bg-rose-400 hover:-translate-y-1'
-                        : i === 1
-                        ? 'bg-emerald-500 shadow-[0_8px_0_rgb(6,95,70)] hover:bg-emerald-400 hover:-translate-y-1'
-                        : i === 2
-                        ? 'bg-blue-500 shadow-[0_8px_0_rgb(30,58,138)] hover:bg-blue-400 hover:-translate-y-1'
-                        : 'bg-amber-500 shadow-[0_8px_0_rgb(146,64,14)] hover:bg-amber-400 hover:-translate-y-1'
-                      : 'shadow-none translate-y-2'}
+                  className={`p-10 rounded-[3rem] text-2xl font-black transition-all border-b-[12px] active:border-b-0
+                    ${submitted && selectedOption === i ? "bg-slate-700 border-white/20" : ""}
+                    ${submitted && selectedOption !== i ? "bg-black/60 opacity-20 grayscale" : ""}
+                    ${
+                      !submitted
+                        ? [
+                            "bg-rose-600 border-rose-900 text-white shadow-[0_20px_40px_rgba(225,29,72,0.4)]",
+                            "bg-emerald-600 border-emerald-900 text-white shadow-[0_20px_40px_rgba(16,185,129,0.3)]",
+                            "bg-blue-600 border-blue-900 text-white shadow-[0_20px_40px_rgba(37,99,235,0.3)]",
+                            "bg-amber-500 border-amber-800 text-[#0A1120] shadow-[0_20px_40px_rgba(245,158,11,0.3)]",
+                          ][i]
+                        : ""
+                    }
                   `}
                 >
-                  {opt || `Option ${i + 1}`}
-                </button>
+                  {opt || `choice_${i + 1}`}
+                </motion.button>
               ))}
             </div>
             {submitted && (
-              <p className="text-center mt-8 text-slate-400 font-bold animate-pulse">
-                Answer locked! Waiting for others...
+              <p className="text-center mt-12 text-amber-500 font-black uppercase tracking-[0.5em] animate-pulse text-[11px]">
+                Target Verified. Waiting for Launch sequence.
               </p>
             )}
-          </div>
-        ) 
-        
-        /* === RESULTS SCREEN WITH GRAPH === */
-        : resultData ? (
-          <div className="w-full max-w-3xl mt-12 animate-fade-in flex flex-col items-center">
-            
-            {/* Top Correct/Wrong Banner */}
-            <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl text-center w-full max-w-md">
-              {selectedOption === null ? (
-                <div>
-                  <div className="text-6xl mb-4">⏳</div>
-                  <h1 className="text-3xl font-black text-slate-400 mb-2">You Missed!</h1>
-                  <p className="text-slate-500">You ran out of time.</p>
-                </div>
-              ) : selectedOption === resultData.correctIndex ? (
-                <div>
-                  <div className="text-6xl mb-4">🎉</div>
-                  <h1 className="text-3xl font-black text-emerald-400 mb-2">Correct!</h1>
-                  <p className="text-slate-400">Awesome job!</p>
-                </div>
-              ) : (
-                <div>
-                  <div className="text-6xl mb-4">❌</div>
-                  <h1 className="text-3xl font-black text-rose-500 mb-2">Wrong!</h1>
-                  <p className="text-slate-400">Better luck next time.</p>
-                </div>
-              )}
-              <div className="mt-6 pt-4 border-t border-slate-700">
-                <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-2">
-                  Correct Answer Was
+          </motion.div>
+        )}
+
+        {/* --- REPORT VIEW (Volcano Eruption) --- */}
+        {resultData && (
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-full flex flex-col items-center mt-10 relative"
+          >
+            {isErupting && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                {[...Array(20)].map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`particle ${["bg-red-500", "bg-orange-500", "bg-amber-400"][idx % 3]}`}
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 0.8}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            <div
+              className={`p-12 rounded-[4rem] border-4 text-center w-full max-w-lg shadow-2xl relative overflow-hidden backdrop-blur-3xl z-10 ${selectedOption === resultData.correctIndex ? "bg-emerald-500/10 border-emerald-500/40" : "bg-rose-500/10 border-rose-500/40"}`}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-amber-500 text-[9px] font-black uppercase tracking-[0.4em]">
+                  SYNAPTIC_LOG #TLE-DIAX
+                </span>
+                <Rocket className="text-white/20" size={18} />
+              </div>
+              <h1
+                className={`text-6xl font-black italic uppercase tracking-tighter mb-4 leading-none ${selectedOption === resultData.correctIndex ? "text-emerald-400" : "text-rose-400"}`}
+              >
+                {selectedOption === resultData.correctIndex
+                  ? "IMPACT!"
+                  : "NEUTRALIZED!"}
+              </h1>
+              <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest italic leading-tight">
+                FINAL REPORT_Mission Standings
+              </p>
+
+              <div className="mt-10 pt-8 border-t border-white/5">
+                <p className="text-[10px] text-slate-600 uppercase tracking-widest font-black mb-4">
+                  Uplink data Verified
                 </p>
-                <p className="text-xl font-bold text-white">
-                  {activeQ?.options?.[resultData.correctIndex] || `Option ${resultData.correctIndex + 1}`}
-                </p>
+                <div className="bg-white/5 py-6 px-10 rounded-3xl border border-white/10 shadow-inner">
+                  <p className="text-2xl font-black text-white italic">
+                    {activeQ?.options?.[resultData.correctIndex]}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* 🔥 NEW: Student View Live Graph 🔥 */}
-            <div className="w-full bg-[#FDFDFC] text-slate-800 p-6 md:p-10 rounded-[2.5rem] shadow-2xl flex flex-col relative mt-10">
-                <div className="absolute top-6 right-8 font-bold text-slate-300 tracking-widest text-sm flex items-center gap-2">
-                  <div className="w-3 h-3 bg-purple-500 rounded-sm rotate-45"></div>
-                  Class Stats
+            {/* CLASS GRAPH (Image 8a7e3d style) */}
+            <motion.div
+              initial={{ y: 30 }}
+              animate={{ y: 0 }}
+              className="w-full bg-[#0D1525] p-12 md:p-16 rounded-[4.5rem] shadow-2xl border border-white/5 mt-14 relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-20">
+                <div>
+                  <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none">
+                    Class Heat Map
+                  </h3>
+                  <p className="text-[9px] text-slate-600 font-bold uppercase tracking-[0.3em] mt-2 italic">
+                    Leverage neural analysis response
+                  </p>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-center mt-4 mb-12 text-slate-700">
-                  How everyone answered
-                </h3>
-                
-                <div className="flex items-end justify-center gap-4 sm:gap-12 md:gap-20 border-b-2 border-slate-200 pb-0 relative">
-                  {resultData.stats.map((count, i) => {
-                    const maxVotes = Math.max(...resultData.stats, 1);
-                    const heightPercent = count === 0 ? 0 : (count / maxVotes) * 100;
-                    return (
-                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-[250px] relative">
-                        <span className={`text-2xl font-medium mb-3 ${count > 0 ? 'text-slate-700' : 'text-slate-300'}`}>
-                          {count}
-                        </span>
-                        <div
-                          className={`w-full max-w-[80px] rounded-t-lg transition-all duration-1000 ease-out ${barColors[i]}`}
-                          style={{ height: `${heightPercent}%`, minHeight: count > 0 ? '12px' : '0px' }}
-                        />
-                        <div className={`w-[120%] h-[4px] absolute bottom-0 translate-y-[2px] rounded-full ${barColors[i]}`} />
-                        <div className="absolute top-full mt-4 w-[150%] text-center px-1">
-                          <span className="text-sm font-medium text-slate-600 line-clamp-2">
-                            {activeQ?.options?.[i] || `Option ${i + 1}`}
-                          </span>
-                          {i === resultData.correctIndex && (
-                            <div className="mt-2 text-emerald-500 font-bold flex items-center justify-center gap-1 text-sm">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                              </svg>
-                              Correct
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="h-20"></div>
-            </div>
+                <Activity size={24} className="text-amber-500 animate-pulse" />
+              </div>
 
-          </div>
-        ) : null}
+              <div className="flex items-end justify-between gap-8 h-[300px] border-b border-white/10 pb-6">
+                {resultData.stats.map((count, i) => {
+                  const height =
+                    (count / Math.max(...resultData.stats, 1)) * 100;
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 flex flex-col items-center justify-end h-full"
+                    >
+                      <span className="text-2xl font-black mb-4 font-mono text-white/80">
+                        {count}
+                      </span>
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: `${height}%` }}
+                        transition={{ type: "spring", damping: 10 }}
+                        className={`w-full max-w-[85px] rounded-t-2xl relative shadow-lg ${barColors[i]}`}
+                      >
+                        {i === resultData.correctIndex && (
+                          <Zap
+                            size={24}
+                            className="absolute -top-12 left-1/2 -translate-x-1/2 text-emerald-400 fill-current"
+                          />
+                        )}
+                      </motion.div>
+                      <div className="mt-8 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center h-12 line-clamp-2 px-2 italic">
+                        {activeQ?.options?.[i]}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
 
-      {/* === ALWAYS VISIBLE LEADERBOARD (Pinned at Bottom) === */}
+      {/* --- LEADERBOARD (Image 89a7ac style) --- */}
       {leaderboard.length > 0 && (
-        <div className="w-full max-w-2xl mt-12 mb-4">
-          <div className="bg-slate-800 p-6 rounded-[2rem] border border-slate-700 shadow-xl">
-            <h3 className="text-lg font-bold text-amber-400 mb-4 text-center tracking-wide">
-              🏆 LIVE LEADERBOARD
+        <motion.div
+          initial={{ y: 50 }}
+          animate={{ y: 0 }}
+          className="w-full max-w-2xl mt-16 mb-20 relative z-20"
+        >
+          <div className="bg-[#0D1525]/80 backdrop-blur-2xl p-10 rounded-[3.5rem] border border-white/10 shadow-2xl">
+            <h3 className="text-xs font-black text-amber-500 tracking-[0.4em] uppercase italic mb-10 flex items-center gap-3 border-l-4 border-amber-500 pl-5">
+              OPTIMIZATION PROTOCOL
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {leaderboard.map((p, i) => (
                 <li
                   key={i}
-                  className={`flex justify-between items-center p-4 rounded-xl transition-all ${
-                    p.name === (userData?.name || 'Guest')
-                      ? 'bg-slate-700 border-2 border-amber-500 shadow-lg scale-[1.02]'
-                      : 'bg-slate-900 border border-slate-700/50'
-                  }`}
+                  className={`flex justify-between items-center p-6 rounded-[2.2rem] border-2 transition-all ${p.name === userData?.name ? "bg-amber-500/10 border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.1)] scale-[1.03]" : "bg-black/40 border-white/5 opacity-70 hover:opacity-100"}`}
                 >
-                  <span className="font-bold text-slate-200">
-                    <span className={`mr-3 ${i === 0 ? 'text-amber-400 text-lg' : i === 1 ? 'text-slate-300 text-lg' : i === 2 ? 'text-amber-600 text-lg' : 'text-slate-500'}`}>
-                        #{i + 1}
+                  <div className="flex items-center gap-6">
+                    <span className="font-mono font-black text-slate-600 text-xl tracking-tighter italic">
+                      0{i + 1}
                     </span>
-                    {p.name} {p.name === (userData?.name || 'Guest') && <span className="ml-2 text-amber-400 text-xs uppercase tracking-widest">(You)</span>}
+                    <span className="font-black text-white uppercase tracking-widest text-base italic">
+                      {p.name}{" "}
+                      {p.name === userData?.name && (
+                        <span className="text-amber-500 text-[10px] ml-2 not-italic">
+                          (UNIT_YOU)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <span className="font-mono font-black text-emerald-400 text-2xl tracking-tighter">
+                    {p.score} XP
                   </span>
-                  <span className="font-mono font-black text-emerald-400 text-lg">{p.score} XP</span>
                 </li>
               ))}
             </ul>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
