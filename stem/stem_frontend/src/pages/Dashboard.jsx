@@ -116,8 +116,7 @@ export default function Dashboard() {
   return (
     <div
       className="min-h-screen bg-[#0B1120] text-slate-100 pb-10 font-sans relative"
-      data-testid="dashboard-page"
-    >
+      data-testid="dashboard-page">
       {/* --- Ambient Background Glows --- */}
       <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none" />
       <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-yellow-500/5 blur-[150px] rounded-full pointer-events-none" />
@@ -128,18 +127,21 @@ export default function Dashboard() {
           <Button
             variant="ghost"
             className="flex items-center gap-2 text-slate-400 hover:text-white hover:bg-white/5 transition-all rounded-xl px-4 py-2 font-bold cursor-pointer group"
-            onClick={() => (window.location.href = mainUrl)}
-          >
+            onClick={() => (window.location.href = mainUrl)}>
             <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
             <span>Dashboard</span>
           </Button>
 
           {/* Optional: Add a sleek right-side element like a user profile or 'Pro' badge if needed */}
+          <Button
+            onClick={() => {
+              navigate("/progress");
+            }}
+            className="flex items-center gap-2 text-slate-400 hover:text-white hover:bg-white/5 transition-all rounded-xl px-4 py-2 font-bold cursor-pointer group">
+            Progress
+          </Button>
         </div>
       </div>
-        <Button onClick={()=>{navigate('/progress')}}>
-          Progress
-        </Button>
 
       {/* ================= HERO SECTION ================= */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20 border-b border-white/5">
@@ -163,8 +165,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-6"
-          >
+            className="mb-6">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#151B2B]/80 backdrop-blur-md border border-white/10 text-cyan-400 text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] shadow-[0_0_15px_rgba(6,182,212,0.15)]">
               <Sparkles className="w-3.5 h-3.5" /> Interactive STEM Platform
             </span>
@@ -174,8 +175,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-[6rem] font-black text-white leading-[1.05] tracking-tight mb-6"
-          >
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-[6rem] font-black text-white leading-[1.05] tracking-tight mb-6">
             Explore. Experiment. <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-600 drop-shadow-[0_0_30px_rgba(250,204,21,0.3)]">
               Dominate.
@@ -186,8 +186,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto md:mx-0 mb-12 leading-relaxed font-medium"
-          >
+            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto md:mx-0 mb-12 leading-relaxed font-medium">
             Learn Math, Physics, and Chemistry through challenges, experiments,
             and AI-powered guidance designed for modern achievers.
           </motion.p>
@@ -196,13 +195,11 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto justify-center md:justify-start"
-          >
+            className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto justify-center md:justify-start">
             {/* Ask AI Tutor Button - White & Prominent */}
             <button
               onClick={() => navigate("/tutor")}
-              className="group relative px-8 py-4 rounded-[1.25rem] bg-white text-[#0B1120] font-bold text-base tracking-wide shadow-[0_10px_40px_rgba(255,255,255,0.15)] hover:shadow-[0_15px_50px_rgba(255,255,255,0.25)] transition-all duration-300 overflow-hidden"
-            >
+              className="group relative px-8 py-4 rounded-[1.25rem] bg-white text-[#0B1120] font-bold text-base tracking-wide shadow-[0_10px_40px_rgba(255,255,255,0.15)] hover:shadow-[0_15px_50px_rgba(255,255,255,0.25)] transition-all duration-300 overflow-hidden">
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <span className="relative flex justify-center items-center gap-2">
                 Ask AI Tutor{" "}
@@ -213,8 +210,7 @@ export default function Dashboard() {
             {/* Start Learning Button - Glassmorphism */}
             <button
               onClick={() => navigate("/quiz/math")}
-              className="px-8 py-4 rounded-[1.25rem] bg-[#151B2B]/60 backdrop-blur-xl border border-white/10 text-white font-bold text-base tracking-wide hover:bg-white/10 hover:border-white/20 transition-all duration-300 flex justify-center items-center shadow-lg"
-            >
+              className="px-8 py-4 rounded-[1.25rem] bg-[#151B2B]/60 backdrop-blur-xl border border-white/10 text-white font-bold text-base tracking-wide hover:bg-white/10 hover:border-white/20 transition-all duration-300 flex justify-center items-center shadow-lg">
               Start Learning
             </button>
 
@@ -223,8 +219,7 @@ export default function Dashboard() {
               onClick={() => {
                 window.location.href = "https://ai-3d-playground.vercel.app/";
               }}
-              className="px-8 py-4 rounded-[1.25rem] bg-gradient-to-r from-blue-600 to-[#2563EB] hover:from-blue-500 hover:to-[#1D4ED8] text-white font-bold text-base tracking-wide shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex justify-center items-center"
-            >
+              className="px-8 py-4 rounded-[1.25rem] bg-gradient-to-r from-blue-600 to-[#2563EB] hover:from-blue-500 hover:to-[#1D4ED8] text-white font-bold text-base tracking-wide shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 transition-all duration-300 flex justify-center items-center">
               Explore 3D models
             </button>
           </motion.div>
@@ -243,8 +238,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            className="bg-[#151B2B]/80 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/5 p-10 md:p-14 overflow-hidden relative group"
-          >
+            className="bg-[#151B2B]/80 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/5 p-10 md:p-14 overflow-hidden relative group">
             {/* Subtle top glare */}
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
@@ -259,8 +253,7 @@ export default function Dashboard() {
               ].map((stat, i) => (
                 <div
                   key={i}
-                  className="pt-8 md:pt-0 first:pt-0 flex flex-col items-center justify-center group/stat cursor-default"
-                >
+                  className="pt-8 md:pt-0 first:pt-0 flex flex-col items-center justify-center group/stat cursor-default">
                   <div className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 group-hover/stat:from-yellow-400 group-hover/stat:to-yellow-600 drop-shadow-lg mb-3 transition-all duration-500 transform group-hover/stat:scale-105">
                     {stat.value}
                   </div>

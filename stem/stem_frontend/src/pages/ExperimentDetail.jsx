@@ -76,7 +76,7 @@ export default function ExperimentDetail() {
   const fetchExperiment = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/${subject}/experiments/${id}`);
+      const response = await axios.get(`${API}/experiments/${subject}/experiments/${id}`);
       setExperiment(response.data);
     } catch (error) {
       console.error("Error fetching experiment:", error);

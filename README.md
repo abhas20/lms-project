@@ -191,7 +191,7 @@ python app.py
 > Attention Engine runs as a separate microservice (Flask). Configure frontend/backend to call the attention API endpoint when enabled.
 
 ### 5. Stem Learning Module
-- Backend Setup
+<!-- - Backend Setup
 
 ```bash
 cd ../stem-backend
@@ -199,7 +199,7 @@ cp .env.example .env # Create your own .env and add required secrets
 npm install
 npm run dev
 ```
-> STEM backend will typically runs on port `5001` depending on configuration.
+> STEM backend will typically runs on port `5001` depending on configuration. -->
 
 - Frontend Setup
 
@@ -213,6 +213,12 @@ npm run dev
 > STEM frontend dev server typically runs on `localhost:3000`.
 
 ---
+
+## Run Using DOCKER
+
+```bash
+  docker compose up --build
+```
 
 ## 🔐 Environment Variables
 
