@@ -37,21 +37,30 @@ function Nav() {
       toast.error("Logout failed");
     }
   };
-  function openAITutor(){
+ async function openAITutor() {
+  try {
 
-  const token = localStorage.getItem("token");
+    const res = await axios.get(
+      `${serverUrl}/api/auth/sso-token`,
+      { withCredentials: true }
+    );
 
-  if(!token){
-    toast.error("Login required");
-    return;
+    const token = res.data.token;
+
+    if (!token) {
+      toast.error("Login required");
+      return;
+    }
+
+    window.open(
+      `https://ai-tutor-sepia-eight.vercel.app/?token=${token}`,
+      "_blank"
+    );
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to open AI Tutor");
   }
-
-  console.log("🔐 LMS token:", token);
-
-  window.open(
-    `https://ai-tutor-sepia-eight.vercel.app/?token=${token}`,
-    "_blank"
-  );
 }
   useEffect(() => {
     setShowHam(false);
