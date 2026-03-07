@@ -25,7 +25,7 @@ import { nodeTypes } from "../components/FlowNodes";
    isAuth.js reads from req.cookies.token — so withCredentials: true is required
    ========================= */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
+  baseURL: import.meta.env.VITE_BACKEND || "http://localhost:8000",
   withCredentials: true,   // sends the httpOnly cookie that isAuth.js reads
 });
 

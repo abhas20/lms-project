@@ -23,7 +23,6 @@ export default function ProgressTracker() {
   const navigate = useNavigate();
   const [progress, setProgress] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userId] = useState("default_user");
 
   useEffect(() => {
     fetchProgress();
@@ -31,7 +30,7 @@ export default function ProgressTracker() {
 
   const fetchProgress = async () => {
     try {
-      const response = await axios.get(`${API}/progress/${userId}`);
+      const response = await axios.get(`${API}/progress`);
       setProgress(response.data);
       setLoading(false);
     } catch (error) {
@@ -92,8 +91,8 @@ export default function ProgressTracker() {
 
   const stats = {
     math: progress.filter((p) => p.subject === "math").length,
-    chemistry: progress.filter((p) => p.subject === "chemistry").length,
-    physics: progress.filter((p) => p.subject === "physics").length,
+    science: progress.filter((p) => p.subject === "science").length,
+    computer: progress.filter((p) => p.subject === "computer").length,
     total: progress.length,
   };
 
@@ -196,7 +195,7 @@ export default function ProgressTracker() {
             </div>
           </motion.div>
 
-          {/* Chemistry */}
+          {/* Science */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -209,32 +208,32 @@ export default function ProgressTracker() {
                 <FlaskConical className="h-6 w-6 text-emerald-400" />
               </div>
               <span className="text-4xl font-black text-white">
-                {stats.chemistry}
+                {stats.science}
               </span>
             </div>
             <div className="text-slate-400 font-bold uppercase tracking-wider text-xs relative z-10">
-              Chem Labs
+              Science Quizzes
             </div>
           </motion.div>
 
-          {/* Physics */}
+          {/* Computer */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="bg-[#1E293B] border border-slate-700 rounded-3xl p-6 shadow-lg relative overflow-hidden group"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="p-3 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                <Atom className="h-6 w-6 text-orange-400" />
+              <div className="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
+                <Monitor className="h-6 w-6 text-cyan-400" />
               </div>
               <span className="text-4xl font-black text-white">
-                {stats.physics}
+                {stats.computer}
               </span>
             </div>
             <div className="text-slate-400 font-bold uppercase tracking-wider text-xs relative z-10">
-              Physics Labs
+              Computer Quizzes
             </div>
           </motion.div>
         </div>
@@ -283,7 +282,7 @@ export default function ProgressTracker() {
 
                 return (
                   <div
-                    key={index}
+                    key={item._id || index}
                     className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl bg-slate-900/50 border border-slate-700/50 transition-all hover:bg-slate-800 hover:border-slate-600 group"
                   >
                     {/* Icon */}
@@ -301,10 +300,10 @@ export default function ProgressTracker() {
                       <div className="font-bold text-slate-200 capitalize text-base group-hover:text-white transition-colors">
                         {item.subject}{" "}
                         <span className="text-slate-500 mx-1">/</span>{" "}
-                        {item.topic_id}
+                        {item.topic_id?.title || "Unknown Topic"}
                       </div>
                       <div className="text-xs text-slate-400 font-medium mt-1 uppercase tracking-widest">
-                        {new Date(item.timestamp).toLocaleDateString(
+                        {new Date(item.createdAt).toLocaleDateString(
                           undefined,
                           { year: "numeric", month: "short", day: "numeric" },
                         )}

@@ -463,7 +463,8 @@ export default function QuizLearning() {
   const [result, setResult] = useState(null);
   const [difficulty, setDifficulty] = useState("all");
   const [loading, setLoading] = useState(true);
-
+  const [correctCount, setCorrectCount] = useState(0); 
+  
   useEffect(() => {
     if (!config) {
       navigate("/", { replace: true });
@@ -476,6 +477,7 @@ export default function QuizLearning() {
     setShowResult(false);
     setResult(null);
     setDifficulty("all");
+    setCorrectCount(0);
     fetchTopics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subject]);
@@ -515,6 +517,7 @@ export default function QuizLearning() {
     setUserAnswer("");
     setShowResult(false);
     setResult(null);
+    setCorrectCount(0);
     scrollToTop();
 
     try {
@@ -550,16 +553,19 @@ export default function QuizLearning() {
       setResult(response.data);
       setShowResult(true);
 
-      response.data.correct
-        ? toast.success("Brilliant! 🎉")
-        : toast.error("Not quite! Try learning from the explanation.");
+      if (response.data.correct) {
+        setCorrectCount((prev) => prev + 1);
+        toast.success("Brilliant! 🎉");
+      } else {
+        toast.error("Not quite! Try learning from the explanation.");
+      }
     } catch (error) {
       console.error("Error checking answer:", error);
       toast.error("Error checking answer");
     }
   };
 
-  const nextProblem = () => {
+  const nextProblem = async () => {
     if (currentProblem < problems.length - 1) {
       setCurrentProblem((p) => p + 1);
       setUserAnswer("");
@@ -567,9 +573,26 @@ export default function QuizLearning() {
       setResult(null);
       scrollToTop();
     } else {
-      toast.success("You've dominated all problems here! 🌟");
+      // Topic completed - save progress
+      const finalCorrect = result?.correct ? correctCount : correctCount; // Already incremented in checkAnswer
+      const score = Math.round((finalCorrect / problems.length) * 100);
+      
+      try {
+        await axios.post(`${API}/progress`, {
+          subject,
+          topic_id: selectedTopic._id,
+          completed: true,
+          score,
+        });
+        toast.success(`Topic completed! Score: ${score}% 🌟`);
+      } catch (error) {
+        console.error("Error saving progress:", error);
+        toast.success("You've dominated all problems here! 🌟");
+      }
+      
       setSelectedTopic(null);
       setProblems([]);
+      setCorrectCount(0);
       scrollToTop();
     }
   };

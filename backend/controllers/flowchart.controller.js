@@ -1,5 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Flowchart from "../models/Flowchart.model.js";
+import dotenv from "dotenv"
+
+dotenv.config()
 
 /* =========================
    JSON Schema sent to Gemini — exact copy from FlowX
